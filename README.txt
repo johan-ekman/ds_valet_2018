@@ -13,8 +13,10 @@ En fil som innehåller alla funktioner som utför det mesta av de beräkningar s
 3. notebook.ipynb
 Den Notebook som är tänkt att användas för att köra koden i. I denna finner man också löpandes text som förklarar bakgrunden till datakörningen, samt i vissa fall vad som i slutändan inte hamnade i tidningen/på sajten.
 
-4. requirements.txt
-En fil som listar alla installerade dependencies som användes när koden skrevs. En del av de moduler som listas används inte, viktigast för denna repo är:
+4. Pipfile & Pipfile.lock
+Programmet är skrivet i en pipenv-miljö. Dessa filer är tänkta att kunna användas för att kunna få till samma utvecklarmiljö för användare.
+
+Viktigaste moduler för detta projekt är:
 
 - pandas
 - os
@@ -27,10 +29,6 @@ En fil som listar alla installerade dependencies som användes när koden skrevs
 - jupyter notebook
 - matplotlib
 
-Se requirements.txt för vilken version av respektive som använts.
-
-5. Pipfile & Pipfile.lock
-Programmet är skrivet i en pipenv-miljö. Dessa filer är tänkta att kunna användas för att kunna få till samma utvecklarmiljö för användare. Vill du veta mer om
 
 
 Om man har frågor är man välkommen att kontakta mig på min mejl: johan.h.ekman@gmail.com
