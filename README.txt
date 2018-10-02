@@ -1,6 +1,6 @@
-Syftet med denna git är att visa hur man som redaktion kan använda python inför (om möjligt) och under en större nyhetshändelse. Ett underliggande syfte är också att enskilda delar av koden kan vara användbara för de som i framtiden vill fördjupa sig i valdata från Valmyndigheten.
+Syftet med denna repo är att visa hur man som redaktion kan använda python inför (om möjligt) och under en större nyhetshändelse. Ett underliggande syfte är också att enskilda delar av koden kan vara användbara för de som i framtiden vill fördjupa sig i valdata från Valmyndigheten.
 
-Denna git innehåller majoriteten av databearbetningen som tidningen Dagens Samhälle gjorde i samband med publiceringen av artiklar veckan efter svenska valet den 9 september 2018. Artiklarna  publicerades på webben under veckan och tidningens nummer 31 2018.
+Denna repo innehåller majoriteten av databearbetningen som tidningen Dagens Samhälle gjorde i samband med publiceringen av artiklar veckan efter svenska valet den 9 september 2018. Artiklarna  publicerades på webben under veckan och tidningens nummer 31 2018.
 
 Innehåll:
 
@@ -14,7 +14,7 @@ En fil som innehåller alla funktioner som utför det mesta av de beräkningar s
 Den Notebook som är tänkt att användas för att köra koden i. I denna finner man också löpandes text som förklarar bakgrunden till datakörningen, samt i vissa fall vad som i slutändan inte hamnade i tidningen/på sajten.
 
 4. requirements.txt
-En fil som listar alla installerade dependencies som användes när koden skrevs. En del av de moduler som listas används inte, viktigast för denna git är:
+En fil som listar alla installerade dependencies som användes när koden skrevs. En del av de moduler som listas används inte, viktigast för denna repo är:
 
 - pandas
 - os
