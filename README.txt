@@ -1,3 +1,5 @@
+DAGENS SAMHÄLLES VALBEVAKNING 2018
+
 Syftet med denna repo är att visa hur man som redaktion kan använda python inför (om möjligt) och under en större nyhetshändelse. Ett underliggande syfte är också att enskilda delar av koden kan vara användbara för de som i framtiden vill fördjupa sig i valdata från Valmyndigheten.
 
 Denna repo innehåller majoriteten av databearbetningen som tidningen Dagens Samhälle gjorde i samband med publiceringen av artiklar veckan efter svenska valet den 9 september 2018. Artiklarna  publicerades på webben under veckan och tidningens nummer 31 2018.
@@ -31,5 +33,5 @@ Viktigaste moduler för detta projekt är:
 
 
 
-Om man har frågor är man välkommen att kontakta mig på min mejl: johan.h.ekman@gmail.com
+Om man har frågor är man välkommen att kontakta mig på min mejl: johan.ekman@dagenssamhalle.se
 
