@@ -5,6 +5,7 @@ import zipfile
 import io
 import requests
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 def folder_maker(years=['2010','2014','2018']):
     """Följande funktion skapar ett träd med mappar \
@@ -278,6 +279,7 @@ information från Valmyndighetens xml-filer med valresultatet. \
     import pandas as pd
     import os
     import xml.etree.ElementTree as ET
+    from pathlib import Path
     import warnings
     warnings.filterwarnings("ignore")
 
@@ -364,8 +366,9 @@ slutresultat_00{types}.xml", encoding="ISO-8859-1") as f:
             # Denna ligger i meta_filer-mappen
             if (types == 'K') and (year == '2014'):
                 #print(types, year)
-                båstad = pd.read_excel('data/\
+                path_båstad = Path('data/\
 omval_båstad_2015.xlsx')
+                båstad = pd.read_excel(path_båstad)
                 for parti in båstad.parti:
                     for var in ['procent','röster','mandat']:
                         #print(parti)
@@ -381,8 +384,10 @@ omval_båstad_2015.xlsx')
             #if types == 'L':
             #    results = gotland_adder(results,year)
             
-            results.to_excel(f'data/resultat/resultat_{year}/\
-valresultat_{year}{types}.xlsx',index=False)
+            path_results = Path(f'data/resultat/resultat_{year}/\
+valresultat_{year}{types}.xlsx')
+
+            results.to_excel(path_results,index=False)
 
     def fast_particip_calc(self, year, count_type="prelresultat"):
         """Hämtar all meta-data om valen, dvs all information om totalt antal \
@@ -455,8 +460,9 @@ slutresultat_00{types}.xml",
             for col in ['valdeltagande','valdeltagande_fgval']:
                 results[col] = self.comma_remover(results[col])
             
-            results.to_excel(f'data/meta_filer/valdeltagande/\
-valdeltagande_{year}{types}.xlsx',index=False)
+            path_results = Path(f'data/meta_filer/valdeltagande/\
+valdeltagande_{year}{types}.xlsx')
+            results.to_excel(path_results,index=False)
 
 
     def all_parties(self, count_type="prelresultat"):
@@ -495,16 +501,20 @@ valdeltagande_{year}{types}.xlsx',index=False)
         
         df.loc[df.parti=='M','beteckning'] = 'Moderaterna'
         
+        path_partierna = Path('data/resultat/alla_partier.xlsx')
+
         df.loc[:,['val',
                     'parti',
                     'beteckning']]\
-            .to_excel('data/resultat/alla_partier.xlsx',index=False)
+            .to_excel(path_partierna,index=False)
 
 
     def data_fetcher(self,elec_type,count_type='prelresultat'):
         import numpy as np
 
-        partierna = pd.read_excel('data/resultat/alla_partier.xlsx')
+        path_partier = Path('data/resultat/alla_partier.xlsx')
+
+        partierna = pd.read_excel(path_partier)
 
 
         ph = pd.DataFrame(columns=['mandat',
@@ -604,7 +614,10 @@ som heter 'alla_valresultat_2006_2018.xlsx' och ligger i mappen 'resultat'."""
         df.loc[df['parti']=='FP','parti'] = 'L'
         df.loc[df.parti=='L','beteckning'] = 'Liberalerna (tidigare Folkpartiet)'
         #df = df.loc[df['parti']!='övriga_mindre_partier_totalt']
-        df.to_excel('data/resultat/alla_valresultat_2006_2018.xlsx',index=False)
+
+        path_all_elecs = Path('data/resultat/alla_valresultat_2006_2018.xlsx')
+
+        df.to_excel(path_all_elecs,index=False)
 
     def muni_elec_meta_data(self, year):
         """Hämtar all metadata om kommunernas valkretsar. \
@@ -650,7 +663,8 @@ spärr på 2 (1 valkrets) eller 3 procent (>1 valkrets)."""
                 xml_data = f.read()
             placeholder = pd.concat([placeholder,get_district_data(xml_data)])
         
-        placeholder.to_excel(f'data/meta_filer/valkretsdata_{year}.xlsx',index=False)
+        path_placeholder = Path(f'data/meta_filer/valkretsdata_{year}.xlsx')
+        placeholder.to_excel(path_placeholder,index=False)
 
 
     def muni_data_fetcher(self,child, year, name=None, code=None):
@@ -697,8 +711,9 @@ kommundata. Denna funktion används inte längre då vi \
 sedan valde att inte räkna Gotland bland landstingen.
 """
         if year == '2006':
-            data = pd.read_excel(f'data/resultat/resultat_2010/\
+            path_2010 = Path(f'data/resultat/resultat_2010/\
 valresultat_2010K.xlsx')
+            data = pd.read_excel(path_2010)
             data = data.loc[:,['kommun',
                                 'kommunkod',
                                 'mandat_fgval',
@@ -710,8 +725,9 @@ valresultat_2010K.xlsx')
                 'röster_fgval':'röster'
             })
         else:
-            data = pd.read_excel(f'data/resultat/resultat_{year}/\
+            path = Path(f'data/resultat/resultat_{year}/\
 valresultat_{year}K.xlsx')
+            data = pd.read_excel(path)
         data = data.loc[data['kommun']=='Gotland']
         return pd.concat([df,data])
 

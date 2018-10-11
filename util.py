@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import requests
 import warnings
+from pathlib import Path
 warnings.filterwarnings("ignore")
 
 
@@ -53,9 +54,11 @@ Resultatet blir den valdata som hämtas i mappen 'resultat'. Default \
     # filtrering av df:n på dessa kommuner
     df = df.loc[df.kommun.isin(coop_govs)]
     
+    path = Path(f'data/resultat/resultat_\
+{elec_year}/valresultat_{elec_year}K.xlsx')
+
     # hämtning av valdata att jämföra med:
-    valdata = pd.read_excel(f'data/resultat/resultat_\
-{elec_year}/valresultat_{elec_year}K.xlsx')\
+    valdata = pd.read_excel(path)\
                 .loc[:,['kommun',
                         'parti',
                         'procent',
@@ -260,14 +263,17 @@ def comma_remover(series):
     return series.str.replace(',','.').astype('float')
 
 def all_particip_years(val):
-    df = pd.DataFrame(columns=pd.read_excel(f'data/meta_filer/\
-valdeltagande/valdeltagande_2010{val}.xlsx').columns)
+    path_2010 = Path(f'data/meta_filer/\
+valdeltagande/valdeltagande_2010{val}.xlsx')
+
+    df = pd.DataFrame(columns=pd.read_excel(path_2010).columns)
     for year in ['2006','2010','2014','2018']:
         if year == '2006':
-            data = pd.read_excel(f'data/meta_filer/valdeltagande/valdeltagande_2010{val}.xlsx')
+            data = pd.read_excel(path_2010)
             data = reshape_particip(data)
         else:
-            data = pd.read_excel(f'data/meta_filer/valdeltagande/valdeltagande_{year}{val}.xlsx')
+        	path = Path(f'data/meta_filer/valdeltagande/valdeltagande_{year}{val}.xlsx')
+            data = pd.read_excel(path)
     
         data['valår'] = int(year)
         df = pd.concat([df,data])
@@ -276,15 +282,17 @@ valdeltagande/valdeltagande_2010{val}.xlsx').columns)
 
 
 def all_elec_years(val,exclude=True):
-    df = pd.DataFrame(columns=pd.read_excel(f'data/resultat/\
-resultat_2010/valresultat_2010{val}.xlsx').columns)
+	path_2010 = Path(f'data/resultat/\
+resultat_2010/valresultat_2010{val}.xlsx')
+    df = pd.DataFrame(columns=pd.read_excel(path_2010).columns)
     for year in ['2006','2010','2014','2018']:
         if year == '2006':
-            data = pd.read_excel(f'data/resultat/resultat_2010/valresultat_2010{val}.xlsx')
+            data = pd.read_excel(path_2010)
             data = reshape(data)
             data['procent'] = comma_remover(data['procent'])
         else:
-            data = pd.read_excel(f'data/resultat/resultat_{year}/valresultat_{year}{val}.xlsx')
+        	path = Path(f'data/resultat/resultat_{year}/valresultat_{year}{val}.xlsx')
+            data = pd.read_excel(path)
             for col in ['procent','procent_fgval']:
                 data[col] = comma_remover(data[col])
     
@@ -310,8 +318,10 @@ def gov_mandates(year):
     
     slask = ['BLANK','OG','OGEJ','övriga_mindre_partier_totalt']
     
+    path_styren = Path('data/styren_2006_2014_formatted.xlsx')
+
     # hämta valdata
-    styren = pd.read_excel('data/styren_2006_2014_formatted.xlsx')
+    styren = pd.read_excel(path_styren)
     
     # se till att alla block är i stora bokstäver
     styren.block = styren.block.str.upper().str.strip()
@@ -631,7 +641,8 @@ def elec_macro_fetcher(elec_type='L',\
                        grouping='parti',\
                        pivot_value='procent',\
                        all_parties=False):
-    df = pd.read_excel('data/resultat/alla_valresultat_2006_2018.xlsx')
+    path_elec_results = Path('data/resultat/alla_valresultat_2006_2018.xlsx')
+    df = pd.read_excel(path_elec_results)
     
     df = df.loc[df['parti']!='Övr']
 
@@ -799,8 +810,9 @@ det gått sämst/bäst för partiet (som bestäms av 'party')
         
         #totalt['röster'] = totalt['röster'].astype('int')
         
+        path_totalt = Path('data/resultat/alla_valresultat_2006_2018.xlsx')
 
-        totalt=pd.read_excel('data/resultat/alla_valresultat_2006_2018.xlsx')
+        totalt=pd.read_excel(path_totalt)
         
         totalt=totalt.loc[totalt['val']==f'{year}{elec_type}']
 
@@ -809,11 +821,13 @@ det gått sämst/bäst för partiet (som bestäms av 'party')
         totalt=totalt.loc[:,['parti','röster']].groupby('parti').sum()
 
         if year == 2006:
-            sum_votes=pd.read_excel(f'data/meta_filer/valdeltagande/\
-valdeltagande_2010{elec_type}.xlsx').summa_röster_fgval.sum()
+        	path_votes_2010 = Path(f'data/meta_filer/valdeltagande/\
+valdeltagande_2010{elec_type}.xlsx')
+            sum_votes=pd.read_excel(path_votes_2010).summa_röster_fgval.sum()
         else:
-            sum_votes=pd.read_excel(f'data/meta_filer/valdeltagande/\
-valdeltagande_{year}{elec_type}.xlsx').summa_röster.sum()
+        	path_votes = Path(f'data/meta_filer/valdeltagande/\
+valdeltagande_{year}{elec_type}.xlsx')
+            sum_votes=pd.read_excel(path_votes).summa_röster.sum()
 
         totalt['procent']=((totalt.röster/sum_votes)*100).round(1)
 
@@ -964,7 +978,9 @@ def vård_partier(df,pattern='vård',elec_year=2018,drop=True,acronyms=False):
     vårdpartier = ['SoL','SJPG','SJV','VåfP','dsp','SJVP','BA','Rf','SPVG']
     # Sjukvårdspartiet i Jönköpings län hittar vi inte förkortningen på
     
-    partierna = pd.read_excel('data/resultat/alla_partier.xlsx')
+    path_partierna = Path('data/resultat/alla_partier.xlsx')
+
+    partierna = pd.read_excel(path_partierna)
     partierna = partierna.loc[partierna['val']==f'{str(elec_year)}L',
                               ['parti','beteckning']]
     
@@ -1051,7 +1067,8 @@ partiförkortningar."""
         df_muni = df.loc[(df['valår']==elec_year)&(df['parti']==party)]
     
     # hämtar partibeteckningar
-    partierna = pd.read_excel('data/resultat/alla_partier.xlsx')
+    path_partierna = Path('data/resultat/alla_partier.xlsx')
+    partierna = pd.read_excel(path_partierna)
     partierna = partierna.loc[partierna['val']==f'{str(elec_year)}K',
                               ['parti','beteckning']]
     
@@ -1108,29 +1125,16 @@ partiförkortningar."""
     
 def parti_till_grafik(df,elec_type,elec_year=2018,compare_year=2014,party='KD'):
     grafik = valanalys(df,query='valresultat',year=elec_year,elec_type=elec_type)[0]\
-                .rename(columns={
-                    'procent':f'procent_{elec_year}',
-                    'röster':f'röster_{elec_year}'})\
-                .merge(valanalys(df,query='valresultat',year=compare_year,elec_type=elec_type)[0]\
-                            .rename(columns={
-                            'procent':f'procent_{compare_year}',
-                            'röster':f'röster_{compare_year}'}),
-                      on='parti',how='left')
-
-    #return grafik
-
+        .merge(valanalys(df,query='valresultat',year=compare_year,elec_type=elec_type)[0],
+              on='parti',how='left')
 
     grafik = grafik.loc[grafik['parti']==party,['parti',
-                                      f'procent_{elec_year}',
-                                      f'procent_{compare_year}']]
+                                      f'procent_{elec_year}{elec_type}',
+                                      f'procent_{compare_year}{elec_type}']]
 
     grafik.columns = [col.replace('procent_','').replace(f'{elec_type}','').replace('p','P') for col in grafik.columns]
 
-    #print(grafik.columns)
-
     grafik['Differens, %'] = grafik[f'{elec_year}']-grafik[f'{compare_year}']
-
-    #return grafik
 
     grafik=grafik.set_index('Parti').T
 
@@ -1425,8 +1429,11 @@ def got_in_gov(val='K',\
             # sortera fram angivet partis alla kommuner under givna valåret
             df_muni = df.loc[(df['valår']==elec_year)&(df['parti']==party)]
 
+        # path conversion
+        path_partierna = Path('data/resultat/alla_partier.xlsx')
+
         # hämtar partibeteckningar
-        partierna = pd.read_excel('data/resultat/alla_partier.xlsx')
+        partierna = pd.read_excel(path_partierna)
         partierna = partierna.loc[partierna['val']==f'{str(elec_year)}K',
                                   ['parti','beteckning']]
 
@@ -1537,9 +1544,9 @@ def local_parties(df, elec_year=2018,elec_type='K',sorter=False,bort=['K', 'LPo'
     partier = ['M','C','L','KD','S','V','MP',
                'SD','FI','OG','OGEJ','BLANK']
     
+    path_beteckningar = Path('data/resultat/alla_partier.xlsx')
     
-    
-    beteckningar = pd.read_excel('data/resultat/alla_partier.xlsx')
+    beteckningar = pd.read_excel(path_beteckningar)
     
     beteckningar = beteckningar.loc[beteckningar['val']==f'{elec_year}{elec_type}']
     beteckningar.parti=beteckningar.parti.str.upper()
@@ -1572,10 +1579,10 @@ vara antingen 'förändring' (för att sortera efter valdeltagande-\
 förändring) eller 'valdeltagande' (för att sortera efter vilken \
 kommun som hade högst/lägst valdeltagande i det angivna valet)."""
     
-
-    
-    df = pd.read_excel(f'data/meta_filer/valdeltagande/\
+	path_participation = Path(f'data/meta_filer/valdeltagande/\
 valdeltagande_{elec_year}{elec_type}.xlsx')
+    
+    df = pd.read_excel(path_participation)
     
     df[f'förändring_{compare_year}-{elec_year}'] = \
     df['valdeltagande'] - df['valdeltagande_fgval']
@@ -1601,11 +1608,15 @@ def elec_particip(elec_type='K'):
             summa_röster = "summa_röster_fgval"
             summa_röstberättigade = "summa_röstberättigade_fgval"
                 
-            df = pd.read_excel(f'data/meta_filer/valdeltagande/\
+            path_2010 = Path(f'data/meta_filer/valdeltagande/\
 valdeltagande_2010{elec_type}.xlsx')
+
+            # 2006 data finns i xml-filerna från 2010
+            df = pd.read_excel(path_2010)
         else:
-            df = pd.read_excel(f'data/meta_filer/valdeltagande/\
+        	path = Path(f'data/meta_filer/valdeltagande/\
 valdeltagande_{year}{elec_type}.xlsx')
+            df = pd.read_excel(path)
             summa_röster = "summa_röster"
             summa_röstberättigade = "summa_röstberättigade"
         a_dict={}
@@ -1636,8 +1647,10 @@ för angivna kommuner. Parametern 'cities' tar en lista på kommuner \
 och återger en df på dessa för det givna valåret ('elec_year'). \
 Default är Stockholm, Göteborg och Malmö."""
     
-    df = pd.read_excel(f'data/resultat/resultat_{elec_year}/\
+    path = Path(f'data/resultat/resultat_{elec_year}/\
 valresultat_{elec_year}{elec_type}.xlsx')
+
+    df = pd.read_excel(path)
     
     remove_these = ['OG',
                     'OGEJ',
@@ -1649,7 +1662,9 @@ valresultat_{elec_year}{elec_type}.xlsx')
     
     compare_year = elec_year-4
     
-    beteckningar = pd.read_excel('data/resultat/alla_partier.xlsx')
+    path_descr = Path'data/resultat/alla_partier.xlsx')
+
+    beteckningar = pd.read_excel(path_descr)
     
     beteckningar = beteckningar.loc[beteckningar['val'] == \
                                     f'{elec_year}{elec_type}']
@@ -1709,7 +1724,8 @@ def looser_winner(df,\
         df_muni = df.loc[(df['valår']==elec_year)&(df['parti']==party)]
     
     # hämtar partibeteckningar
-    partierna = pd.read_excel('data/resultat/alla_partier.xlsx')
+    path_partierna = Path('data/resultat/alla_partier.xlsx')
+    partierna = pd.read_excel(path_partierna)
     partierna = partierna.loc[partierna['val']==f'{str(elec_year)}K',
                               ['parti','beteckning']]
     
@@ -1837,7 +1853,10 @@ def elec_macro_fetcher(elec_type='L',\
                        grouping='parti',\
                        pivot_value='procent',\
                        all_parties=False):
-    df = pd.read_excel('data/resultat/alla_valresultat_2006_2018.xlsx')
+    
+	path = Path('data/resultat/alla_valresultat_2006_2018.xlsx')
+
+    df = pd.read_excel(path)
     
     elec_years = [str(year)+elec_type for year in elec_years]
     
