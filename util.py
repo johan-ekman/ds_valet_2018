@@ -272,7 +272,7 @@ valdeltagande/valdeltagande_2010{val}.xlsx')
             data = pd.read_excel(path_2010)
             data = reshape_particip(data)
         else:
-        	path = Path(f'data/meta_filer/valdeltagande/valdeltagande_{year}{val}.xlsx')
+            path = Path(f'data/meta_filer/valdeltagande/valdeltagande_{year}{val}.xlsx')
             data = pd.read_excel(path)
     
         data['valår'] = int(year)
@@ -282,7 +282,7 @@ valdeltagande/valdeltagande_2010{val}.xlsx')
 
 
 def all_elec_years(val,exclude=True):
-	path_2010 = Path(f'data/resultat/\
+    path_2010 = Path(f'data/resultat/\
 resultat_2010/valresultat_2010{val}.xlsx')
     df = pd.DataFrame(columns=pd.read_excel(path_2010).columns)
     for year in ['2006','2010','2014','2018']:
@@ -291,7 +291,7 @@ resultat_2010/valresultat_2010{val}.xlsx')
             data = reshape(data)
             data['procent'] = comma_remover(data['procent'])
         else:
-        	path = Path(f'data/resultat/resultat_{year}/valresultat_{year}{val}.xlsx')
+            path = Path(f'data/resultat/resultat_{year}/valresultat_{year}{val}.xlsx')
             data = pd.read_excel(path)
             for col in ['procent','procent_fgval']:
                 data[col] = comma_remover(data[col])
@@ -821,11 +821,11 @@ det gått sämst/bäst för partiet (som bestäms av 'party')
         totalt=totalt.loc[:,['parti','röster']].groupby('parti').sum()
 
         if year == 2006:
-        	path_votes_2010 = Path(f'data/meta_filer/valdeltagande/\
+            path_votes_2010 = Path(f'data/meta_filer/valdeltagande/\
 valdeltagande_2010{elec_type}.xlsx')
             sum_votes=pd.read_excel(path_votes_2010).summa_röster_fgval.sum()
         else:
-        	path_votes = Path(f'data/meta_filer/valdeltagande/\
+            path_votes = Path(f'data/meta_filer/valdeltagande/\
 valdeltagande_{year}{elec_type}.xlsx')
             sum_votes=pd.read_excel(path_votes).summa_röster.sum()
 
@@ -1579,7 +1579,7 @@ vara antingen 'förändring' (för att sortera efter valdeltagande-\
 förändring) eller 'valdeltagande' (för att sortera efter vilken \
 kommun som hade högst/lägst valdeltagande i det angivna valet)."""
     
-	path_participation = Path(f'data/meta_filer/valdeltagande/\
+    path_participation = Path(f'data/meta_filer/valdeltagande/\
 valdeltagande_{elec_year}{elec_type}.xlsx')
     
     df = pd.read_excel(path_participation)
@@ -1614,7 +1614,7 @@ valdeltagande_2010{elec_type}.xlsx')
             # 2006 data finns i xml-filerna från 2010
             df = pd.read_excel(path_2010)
         else:
-        	path = Path(f'data/meta_filer/valdeltagande/\
+            path = Path(f'data/meta_filer/valdeltagande/\
 valdeltagande_{year}{elec_type}.xlsx')
             df = pd.read_excel(path)
             summa_röster = "summa_röster"
@@ -1854,7 +1854,7 @@ def elec_macro_fetcher(elec_type='L',\
                        pivot_value='procent',\
                        all_parties=False):
     
-	path = Path('data/resultat/alla_valresultat_2006_2018.xlsx')
+    path = Path('data/resultat/alla_valresultat_2006_2018.xlsx')
 
     df = pd.read_excel(path)
     
