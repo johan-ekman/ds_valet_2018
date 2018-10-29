@@ -432,6 +432,20 @@ valdeltagande/valdeltagande_2010{val}.xlsx')
 
 
 def all_elec_years(val,exclude=True):
+    """Denn funktion formatterar om alla grundfiler \
+med respektive års valdata till en enhetlig och korrekt \
+formatterad totallista för alla önskat val åren 2006-2018.
+
+Funktionen använder sig också av följande funktioner:
+- reshape(), tar bort och döper om kolumner
+- comma_remover(), xml-datat plockar hem decimaler som strängar \
+som pandas inte kan läsa om inte komman byts ut till punkter, \
+vilket denna funktion fixar
+- old_data_reshaper(), hämtar rätt siffror för år 2010 och 2014 \
+(det kan nämligen vara så att somliga kommuner haft omval, denna \
+funktion säkerställer att rätt jämförbart valresultat är med \
+för alla kommuner).
+"""
     path_2010 = Path(f'data/resultat/\
 resultat_2010/valresultat_2010{val}.xlsx')
     df = pd.DataFrame(columns=pd.read_excel(path_2010).columns)
@@ -443,6 +457,8 @@ resultat_2010/valresultat_2010{val}.xlsx')
         else:
             path = Path(f'data/resultat/resultat_{year}/valresultat_{year}{val}.xlsx')
             data = pd.read_excel(path)
+            if (year == '2010') or (year == '2014'):
+                data = old_data_reshaper(data,year,val)
             for col in ['procent','procent_fgval']:
                 data[col] = comma_remover(data[col])
     
@@ -464,6 +480,29 @@ resultat_2010/valresultat_2010{val}.xlsx')
         df = all_mandates_2006(df)
     return df.loc[:,['kommun','valår','parti','röster','summa_röster','procent','mandat','summa_mandat']]
 
+def old_data_reshaper(df,year,elec_type):
+    """Den här funktionen byter ut valdata hämtade från \
+alla grundfiler och byte ut dem med nästföljande vals \
+valdata, då från kolumnen "[variabel]_fgval" - där "variabel" \
+är mandat, procent och röster.
+"""
+    path = Path(f'data/resultat/\
+resultat_{str(int(year)+4)}/valresultat_{str(int(year)+4)}{elec_type}.xlsx')
+    new_data = pd.read_excel(path).loc[:,['kommun',
+                                          'kommunkod',
+                                          'parti',
+                                          'mandat_fgval',
+                                          'procent_fgval',
+                                          'röster_fgval']]\
+                                .rename(columns={
+                                        'mandat_fgval':'mandat',
+                                        'procent_fgval':'procent',
+                                        'röster_fgval':'röster'})
+    df = df.loc[:,['kommun','kommunkod','parti','mandat_fgval','procent_fgval','röster_fgval']]
+    
+    return df.merge(new_data,on=['kommun','kommunkod','parti'])
+    
+    
 
 def elec_macro_fetcher(elec_type='L',\
                        elec_years=[2010,
