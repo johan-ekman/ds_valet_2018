@@ -364,19 +364,19 @@ slutresultat_00{types}.xml", encoding="ISO-8859-1") as f:
             # Detta block kompletterar dessa siffror
             # från en fil med data från SCB. 
             # Denna ligger i meta_filer-mappen
-            if (types == 'K') and (year == '2014'):
-                #print(types, year)
-                path_båstad = Path('data/\
-omval_båstad_2015.xlsx')
-                båstad = pd.read_excel(path_båstad)
-                for parti in båstad.parti:
-                    for var in ['procent','röster','mandat']:
-                        #print(parti)
-                        val = båstad.loc[båstad['parti']==f'{parti}',
-                                    f'{var}'].iloc[0]
-                        #print(var)
-                        results.loc[(results['kommun']=='Båstad')&\
-                        (results['parti']==f'{parti}'),f'{var}'] = val
+#             if (types == 'K') and (year == '2014'):
+#                 #print(types, year)
+#                 path_båstad = Path('data/\
+# omval_båstad_2015.xlsx')
+#                 båstad = pd.read_excel(path_båstad)
+#                 for parti in båstad.parti:
+#                     for var in ['procent','röster','mandat']:
+#                         #print(parti)
+#                         val = båstad.loc[båstad['parti']==f'{parti}',
+#                                     f'{var}'].iloc[0]
+#                         #print(var)
+#                         results.loc[(results['kommun']=='Båstad')&\
+#                         (results['parti']==f'{parti}'),f'{var}'] = val
                         
             
             # Följande avkommenterade rader är ifall man vill
@@ -465,7 +465,7 @@ valdeltagande_{year}{types}.xlsx')
             results.to_excel(path_results,index=False)
 
 
-    def all_parties(self, count_type="prelresultat"):
+    def all_parties(self, count_type="slutresultat"):
         """Hämtar all metadata om alla partier för åren 2006, 2010, \
 2014 och 2018. Partierna för 2006 finns i samma data som för \
 2010."""
@@ -594,7 +594,7 @@ valdeltagande_{year}{types}.xlsx')
                                               'röster_fgval']] = np.nan
         return ph
 
-    def macro_results(self, count_type="prelresultat"):
+    def macro_results(self, count_type="slutresultat"):
         """Denna funktion hämtar alla valresultat på riksnivå från xml-filerna \
 för riksdata (dvs de som har namnet 00{valtyp}.xml). Valdata från dessa \
 sätts här ihop till en samlad fil för resultat på riksnivå i en fil \
