@@ -9,311 +9,6 @@ warnings.filterwarnings("ignore")
 # Här följer alla huvudsakliga beräkningar till Dagens Samhälles 
 # valnummer 2018: 
 
-
-
-
-def block_gov_count(df,\
-                    value='mandat',\
-                    parameter='minskat',\
-                    elec_year='2018',\
-                    compare_year='2014',\
-                    research_data=None):
-    """Räknar ut hur stor andel av alla blocksamarbeten som antingen
-ökat eller minskat. Återger en lista där första tinget är en dataframe
-på den formatterade data som beräkningarna bygger på (för kontroll).
-Andra tinget är en jämförelse mellan de olika blockkonstellationerna.
-
-PARAMETRAR
-----------
-df : Den blockdata som ska beräknas.
-
-value : Strängvärde på vad man vill jämföra. Antingen 'mandat' (default) \
-eller 'procent'.
-
-parameter : Tar antingen strängvärdet 'minskat' eller 'ökat'. \
-Default är 'minskat', dvs ifall inget strängvärde ges så kommer \
-resultatet som visas vara hur stor andel av alla kommuner blocken \
-styrde 2014 där de regerande partierna har minskat i stöd jämfört \
-med 2014.
-
-elec_year : ett årtal på den data man vill jämföra 2014 med. \
-Resultatet blir den valdata som hämtas i mappen 'resultat'. Default \
-är 2018."""
-    
-    value = value + f'_{compare_year}'
-    
-    elec_year = str(elec_year)
-    
-    # lista över hur många partier som ingår i varje kommunstyre
-    num_govs = df.kommun.value_counts().reset_index().rename(columns={'kommun':'num','index':'kommun'})
-    
-    # filtrering till en lista på de kommuner som har över ett parti i styret
-    # för att endast beräkna på de kommunstyren som är partisamarbeten: 
-    coop_govs=num_govs.loc[num_govs.num>1,'kommun']
-    
-    # filtrering av df:n på dessa kommuner
-    df = df.loc[df.kommun.isin(coop_govs)]
-    
-    path = Path(f'data/resultat/resultat_\
-{elec_year}/valresultat_{elec_year}K.xlsx')
-
-    # hämtning av valdata att jämföra med:
-    valdata = pd.read_excel(path)\
-                .loc[:,['kommun',
-                        'parti',
-                        'procent',
-                        'mandat']]
-    
-    # dataformattering för att vara säker på att den importerade datan
-    # är siffervärden och inte strängar:
-    valdata['procent'] = valdata['procent'].str.replace(',','.').astype('float')
-    
-    # Döper om kolumner:
-    valdata.columns=pd.Series(valdata.columns)\
-                        .apply(lambda x: x + f'_{elec_year}' \
-                               if x in ['procent','mandat'] else x)
-    
-    # Lägger till den importerade valdatan till df:n
-    df = df.merge(valdata, on=['kommun','parti'], how='left')
-    
-    df.rename(columns={'procent':f'procent_{compare_year}',
-                       'mandat':f'mandat_{compare_year}'},inplace=True)
-    
-    # Här summeras alla partier ihop till ett blockstyre per rad:
-    muni_govs = df.loc[:,['kommun',
-                   'block',
-                   f'procent_{compare_year}',
-                   f'mandat_{compare_year}',
-                   f'procent_{elec_year}',
-                   f'mandat_{elec_year}']]\
-            .groupby(['kommun',
-                      'block']).sum().reset_index()
-    
-    # Vi vill också se hur stor mandatminskningen är inom blocken
-    # Här bryter vi ur den infon i en ny df som används längre ned
-    df2 = muni_govs.groupby(['block']).sum()
-    
-    # Här räknar vi ut hur stor miskningen/ökningen är per blockstyre
-    # i procent:
-    df2 = (((df2[f'mandat_{elec_year}'] - df2[f'mandat_{compare_year}']) /\
-            df2[f'mandat_{compare_year}'])*100).round(1).reset_index()
-    
-    df2 = df2.rename(columns={0:'total_mandatminskning_i_procent'})
-    
-    # uträkning på alla olika styrsamarbeten totalt:
-    blockstyren = muni_govs.block.value_counts().reset_index()\
-                    .rename(columns={'index':'block',
-                                     'block':'antal_styren'})
-    
-    # uträkning på alla olika styrsamarbeten som har tappat i procent/mandat:
-    if parameter == 'minskat':
-        development = muni_govs.loc[(muni_govs[f'{value}_{elec_year}'] - \
-                                     muni_govs[f'{value}_{compare_year}'])<0,'block']\
-                        .value_counts().reset_index()\
-                        .rename(columns={'index':'block',
-                                         'block':'antal_styren_som_minskat'})
-        
-    elif parameter == 'ökat':
-        development = muni_govs.loc[(muni_govs[f'{value}_{elec_year}'] - \
-                                     muni_govs[f'{value}_{compare_year}'])>0,'block']\
-                        .value_counts().reset_index()\
-                        .rename(columns={'index':'block',
-                                         'block':'antal_styren_som_ökat'})
-    
-    # här bildas en samlad lista 
-    blockstyren=blockstyren.merge(development,on='block', how='left')
-    
-    # Här räknas det ut hur stor andel av respektive blockpartisamarbete
-    # som har minskat i om det nya valresultatet. Det är en procentsiffra:
-    blockstyren[f'andel_som_{parameter}'] = \
-    ((blockstyren[f'antal_styren_som_{parameter}'] / \
-      blockstyren.antal_styren)*100).round(1)
-    
-    # Lägger till mandatförändringen till slutreseultatet och transponerar
-    # tabellen för bättre översikt:
-    blockstyren = blockstyren.merge(df2,
-                                    on='block',
-                                    how='left')\
-                             .set_index('block')
-    
-    blockstyren.rename(columns={'antal_styren':f'antal styren mandatperioden {compare_year}-{elec_year}',
-                                'antal_styren_som_minskat':\
-                                f'antal styren som {parameter} sitt stöd i valet {elec_year}',
-                                'andel_som_minskat':f'andelen av styren som {parameter}',
-                                'total_mandatminskning_i_procent':\
-                                f'total mandat{parameter[:-2]+"ning"} i procent, {elec_year} jämfört {compare_year}'},
-                      inplace=True)
-    if research_data:
-        return df
-    
-    
-    df = df.groupby(['kommun','block']).sum().reset_index().set_index('kommun')
-    
-    df[f'procentdiff_{compare_year}_{elec_year}'] = \
-        (df[f'procent_{elec_year}']-\
-         df[f'procent_{compare_year}']).round(1)
-    
-    return [df,blockstyren]
-
-def all_mandates_2006(df):
-    """Beräknar mandatsumma för 2006."""
-    df1 = df.loc[df['valår']==2006]
-    
-    all_mandates = df1.groupby('kommun').sum().reset_index()\
-                        .loc[:,['kommun',
-                                'mandat']]\
-                        .rename(columns={'mandat':'mandat_2006'})
-    all_mandates['valår'] = 2006
-    
-    df=df.merge(all_mandates,on=['kommun','valår'],how='left')
-
-    df.loc[df['valår']==2006,'summa_mandat'] = \
-    df.loc[df['valår']==2006,'mandat_2006']
-
-    del df['mandat_2006']
-    
-    return df
-    #return df.merge(all_mandates,on='kommun',how='left')
-
-def reshape(df):
-    df = df.loc[:,['kommun',
-                   'kommunkod',
-                   'mandat_fgval',
-                   'parti',
-                   'procent_fgval',
-                   'röster_fgval',
-                   'valår']]
-    
-    df.rename(columns={
-        'mandat_fgval':'mandat',
-        'procent_fgval':'procent',
-        'röster_fgval':'röster'
-    },inplace=True)
-    
-    #df = all_mandates_2006(df)
-    #print(df.summa_mandat.iloc[0])
-    return df
-
-def comma_remover(series):
-    return series.str.replace(',','.').astype('float')
-
-def majority_calc(df, operator='mandat'):
-    df = df.loc[df.parti != 'övriga_mindre_partier_totalt']
-    df['summa_mandat'] = df['summa_mandat'].fillna(0).astype('int')
-    
-    mandat_totalt = df.loc[:,['kommun','valår','summa_mandat']].drop_duplicates()
-    
-    alliansen = ['M','C','L','KD']
-    vänstern = ['S','V']
-    
-    slask = ['övriga_mindre_partier_totalt','OG','BLANK']
-
-    df.loc[df['parti'].isin(vänstern),'block'] = 'V'
-
-    df.loc[df['parti'].isin(alliansen),'block'] = 'A'
-
-    df.loc[df['block'].isnull(),'block'] = 'Ö'
-    
-    df=df.groupby(['kommun','valår','block']).sum().reset_index()
-    
-    del df['summa_mandat']
-    
-    df=df.merge(mandat_totalt,on=['kommun','valår'],how='left')
-    
-    if operator == 'mandat':
-        df.loc[df.mandat>(df.summa_mandat/2),'majoritet'] = 1
-
-        df.loc[df.mandat<(df.summa_mandat/2),'majoritet'] = 0
-    elif operator == 'procent':
-        df.loc[df.procent>50,'majoritet'] = 1
-
-        df.loc[df.procent<50,'majoritet'] = 0
-
-        
-    alliansen = df.loc[df['block']=='A'].pivot(index='kommun',columns='valår',values='majoritet')
-
-    alliansen=alliansen.sum()
-
-    vänstern = df.loc[df['block']=='V'].pivot(index='kommun',columns='valår',values='majoritet')
-
-    vänstern=vänstern.sum()
-
-    övriga = len(df.kommun.unique())-(vänstern+alliansen)
-    #return df
-    return pd.concat([alliansen,
-               vänstern,
-               övriga],axis=1).astype('int')\
-        .rename(columns={0:'alliansen',
-                         1:'vänstern',
-                         2:'övriga'})
-
-def reshape_particip(df):
-    df = df.loc[:,['kommun',
-                   'kommunkod',
-                   'summa_röster_fgval',
-                   'valdeltagande_fgval']]
-    
-    df.rename(columns={
-        'summa_röster_fgval':'summa_röster',
-        'valdeltagande_fgval':'valdeltagande'
-    },inplace=True)
-    return df
-
-def comma_remover(series):
-    return series.str.replace(',','.').astype('float')
-
-def all_particip_years(val):
-    path_2010 = Path(f'data/meta_filer/\
-valdeltagande/valdeltagande_2010{val}.xlsx')
-
-    df = pd.DataFrame(columns=pd.read_excel(path_2010).columns)
-    for year in ['2006','2010','2014','2018']:
-        if year == '2006':
-            data = pd.read_excel(path_2010)
-            data = reshape_particip(data)
-        else:
-            path = Path(f'data/meta_filer/valdeltagande/valdeltagande_{year}{val}.xlsx')
-            data = pd.read_excel(path)
-    
-        data['valår'] = int(year)
-        df = pd.concat([df,data])
-        
-    return df.loc[:,['kommun','valår','summa_röster','valdeltagande','summa_mandat']]
-
-
-def all_elec_years(val,exclude=True):
-    path_2010 = Path(f'data/resultat/\
-resultat_2010/valresultat_2010{val}.xlsx')
-    df = pd.DataFrame(columns=pd.read_excel(path_2010).columns)
-    for year in ['2006','2010','2014','2018']:
-        if year == '2006':
-            data = pd.read_excel(path_2010)
-            data = reshape(data)
-            data['procent'] = comma_remover(data['procent'])
-        else:
-            path = Path(f'data/resultat/resultat_{year}/valresultat_{year}{val}.xlsx')
-            data = pd.read_excel(path)
-            for col in ['procent','procent_fgval']:
-                data[col] = comma_remover(data[col])
-    
-        data['valår'] = int(year)
-        df = pd.concat([df,data])
-        if exclude:
-            df = df.loc[df['parti']!='övriga_mindre_partier_totalt']
-        
-    # slutligen, lägg till totala röster och mandat i kommunerna:
-    munis_meta = all_particip_years(val)
-    #munis_meta.valår = munis_meta.valår.astype('str')
-    munis_meta = munis_meta.loc[:,['kommun','valår','summa_röster','summa_mandat']]
-
-    #df.valår = df.valår.astype('str')
-    df = df.merge(munis_meta, on=['kommun','valår'],how='left')
-    
-    df.valår = df.valår.astype('int')
-    if val == 'K':
-        df = all_mandates_2006(df)
-    return df.loc[:,['kommun','valår','parti','röster','summa_röster','procent','mandat','summa_mandat']]
-
 def gov_mandates(year):
     
     slask = ['BLANK','OG','OGEJ','övriga_mindre_partier_totalt']
@@ -410,6 +105,8 @@ def gov_mandates(year):
                                         'summa_mandat'] else x)
     
     return partier
+
+
 
 def block_gov_count(df,\
                     value='mandat',\
@@ -623,6 +320,150 @@ def reshape_particip(df):
 
 def comma_remover(series):
     return series.str.replace(',','.').astype('float')
+
+
+
+def all_mandates_2006(df):
+    """Beräknar mandatsumma för 2006."""
+    df1 = df.loc[df['valår']==2006]
+    
+    all_mandates = df1.groupby('kommun').sum().reset_index()\
+                        .loc[:,['kommun',
+                                'mandat']]\
+                        .rename(columns={'mandat':'mandat_2006'})
+    all_mandates['valår'] = 2006
+    
+    df=df.merge(all_mandates,on=['kommun','valår'],how='left')
+
+    df.loc[df['valår']==2006,'summa_mandat'] = \
+    df.loc[df['valår']==2006,'mandat_2006']
+
+    del df['mandat_2006']
+    
+    return df
+    #return df.merge(all_mandates,on='kommun',how='left')
+
+def reshape(df):
+    df = df.loc[:,['kommun',
+                   'kommunkod',
+                   'mandat_fgval',
+                   'parti',
+                   'procent_fgval',
+                   'röster_fgval',
+                   'valår']]
+    
+    df.rename(columns={
+        'mandat_fgval':'mandat',
+        'procent_fgval':'procent',
+        'röster_fgval':'röster'
+    },inplace=True)
+    
+    #df = all_mandates_2006(df)
+    #print(df.summa_mandat.iloc[0])
+    return df
+
+def majority_calc(df, operator='mandat'):
+    df = df.loc[df.parti != 'övriga_mindre_partier_totalt']
+    df['summa_mandat'] = df['summa_mandat'].fillna(0).astype('int')
+    
+    mandat_totalt = df.loc[:,['kommun','valår','summa_mandat']].drop_duplicates()
+    
+    alliansen = ['M','C','L','KD']
+    vänstern = ['S','V']
+    
+    slask = ['övriga_mindre_partier_totalt','OG','BLANK']
+
+    df.loc[df['parti'].isin(vänstern),'block'] = 'V'
+
+    df.loc[df['parti'].isin(alliansen),'block'] = 'A'
+
+    df.loc[df['block'].isnull(),'block'] = 'Ö'
+    
+    df=df.groupby(['kommun','valår','block']).sum().reset_index()
+    
+    del df['summa_mandat']
+    
+    df=df.merge(mandat_totalt,on=['kommun','valår'],how='left')
+    
+    if operator == 'mandat':
+        df.loc[df.mandat>(df.summa_mandat/2),'majoritet'] = 1
+
+        df.loc[df.mandat<(df.summa_mandat/2),'majoritet'] = 0
+    elif operator == 'procent':
+        df.loc[df.procent>50,'majoritet'] = 1
+
+        df.loc[df.procent<50,'majoritet'] = 0
+
+        
+    alliansen = df.loc[df['block']=='A'].pivot(index='kommun',columns='valår',values='majoritet')
+
+    alliansen=alliansen.sum()
+
+    vänstern = df.loc[df['block']=='V'].pivot(index='kommun',columns='valår',values='majoritet')
+
+    vänstern=vänstern.sum()
+
+    övriga = len(df.kommun.unique())-(vänstern+alliansen)
+    #return df
+    return pd.concat([alliansen,
+               vänstern,
+               övriga],axis=1).astype('int')\
+        .rename(columns={0:'alliansen',
+                         1:'vänstern',
+                         2:'övriga'})
+
+def all_particip_years(val):
+    path_2010 = Path(f'data/meta_filer/\
+valdeltagande/valdeltagande_2010{val}.xlsx')
+
+    df = pd.DataFrame(columns=pd.read_excel(path_2010).columns)
+    for year in ['2006','2010','2014','2018']:
+        if year == '2006':
+            data = pd.read_excel(path_2010)
+            data = reshape_particip(data)
+        else:
+            path = Path(f'data/meta_filer/valdeltagande/valdeltagande_{year}{val}.xlsx')
+            data = pd.read_excel(path)
+    
+        data['valår'] = int(year)
+        df = pd.concat([df,data])
+        
+    return df.loc[:,['kommun','valår','summa_röster','valdeltagande','summa_mandat']]
+
+
+def all_elec_years(val,exclude=True):
+    path_2010 = Path(f'data/resultat/\
+resultat_2010/valresultat_2010{val}.xlsx')
+    df = pd.DataFrame(columns=pd.read_excel(path_2010).columns)
+    for year in ['2006','2010','2014','2018']:
+        if year == '2006':
+            data = pd.read_excel(path_2010)
+            data = reshape(data)
+            data['procent'] = comma_remover(data['procent'])
+        else:
+            path = Path(f'data/resultat/resultat_{year}/valresultat_{year}{val}.xlsx')
+            data = pd.read_excel(path)
+            for col in ['procent','procent_fgval']:
+                data[col] = comma_remover(data[col])
+    
+        data['valår'] = int(year)
+        df = pd.concat([df,data])
+        if exclude:
+            df = df.loc[df['parti']!='övriga_mindre_partier_totalt']
+        
+    # slutligen, lägg till totala röster och mandat i kommunerna:
+    munis_meta = all_particip_years(val)
+    #munis_meta.valår = munis_meta.valår.astype('str')
+    munis_meta = munis_meta.loc[:,['kommun','valår','summa_röster','summa_mandat']]
+
+    #df.valår = df.valår.astype('str')
+    df = df.merge(munis_meta, on=['kommun','valår'],how='left')
+    
+    df.valår = df.valår.astype('int')
+    if val == 'K':
+        df = all_mandates_2006(df)
+    return df.loc[:,['kommun','valår','parti','röster','summa_röster','procent','mandat','summa_mandat']]
+
 
 def elec_macro_fetcher(elec_type='L',\
                        elec_years=[2010,
@@ -1662,7 +1503,7 @@ valresultat_{elec_year}{elec_type}.xlsx')
     
     compare_year = elec_year-4
     
-    path_descr = Path'data/resultat/alla_partier.xlsx')
+    path_descr = Path('data/resultat/alla_partier.xlsx')
 
     beteckningar = pd.read_excel(path_descr)
     
