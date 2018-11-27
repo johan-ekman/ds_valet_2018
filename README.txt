@@ -6,7 +6,7 @@ Denna repo innehåller majoriteten av databearbetningen som tidningen Dagens Sam
 
 Innehåll:
 
-1. setup.py
+1. startup_tools.py
 Innehåller kod som skapar rätt mappstruktur för övriga programmet, samt hämtar korrekt data från Valmyndighetens grundfiler.
 
 2. util.py
@@ -21,6 +21,7 @@ Programmet är skrivet i en pipenv-miljö. Dessa filer är tänkta att kunna anv
 Viktigaste moduler för detta projekt är:
 
 - pandas
+- numpy
 - os
 - shutil
 - zipfile
