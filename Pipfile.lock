@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1c17a3a5bbd49b59282d78f46a8b4ee3c8ac9342a58d913b64b9377fe83dbf77"
+            "sha256": "6ea085b032564b4156f128e5d9d4039cd9dfa7c9dbad5119d8f747a2b7bd20c4"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -391,11 +391,11 @@
         },
         "notebook": {
             "hashes": [
-                "sha256:95dc9afa0444d05a0b76d6d1f5133c34a92a95f4e248efef3f59ccd2c2616c7d",
-                "sha256:fa915c231e64a30d19cc2c70ccab6444cbaa93e44e92b5f8233dd9147ad0e664"
+                "sha256:661341909008d1e7bfa1541904006f9789fa3de1cbec8379d2879819454cc04b",
+                "sha256:91705b109fc785198faed892489cddb233265564d5e2dad5e4f7974af05ee8dd"
             ],
             "index": "pypi",
-            "version": "==5.5.0"
+            "version": "==5.7.2"
         },
         "numpy": {
             "hashes": [
@@ -489,6 +489,12 @@
             ],
             "index": "pypi",
             "version": "==0.7.4"
+        },
+        "prometheus-client": {
+            "hashes": [
+                "sha256:046cb4fffe75e55ff0e6dfd18e2ea16e54d86cc330f369bebcc683475c8b68a9"
+            ],
+            "version": "==0.4.2"
         },
         "prompt-toolkit": {
             "hashes": [
