@@ -1008,6 +1008,12 @@ def parti_till_grafik(df,elec_type,elec_year=2018,compare_year=2014,party='KD'):
         .merge(valanalys(df,query='valresultat',year=compare_year,elec_type=elec_type)[0],
               on='parti',how='left')
 
+    grafik.columns = ['parti',
+                      f'procent_{elec_year}{elec_type}',
+                      f'röster_{elec_year}{elec_type}',
+                      f'procent_{compare_year}{elec_type}',
+                      f'röster_{compare_year}{elec_type}']
+
     grafik = grafik.loc[grafik['parti']==party,['parti',
                                       f'procent_{elec_year}{elec_type}',
                                       f'procent_{compare_year}{elec_type}']]
