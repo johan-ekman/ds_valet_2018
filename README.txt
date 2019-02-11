@@ -31,6 +31,8 @@ Viktigaste moduler för detta projekt är:
 - warnings
 - jupyter notebook
 - matplotlib
+- xlrd
+- openpyxl
 
 
 
