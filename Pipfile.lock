@@ -307,7 +307,7 @@
                 "sha256:d908673a4010787625c8952e91a22adf737db031f2aa0793ad92f6558918a74a"
             ],
             "index": "pypi",
-            "version": "==5.7.4"
+            "version": ">=5.7.8"
         },
         "numpy": {
             "hashes": [
@@ -546,7 +546,7 @@
                 "sha256:61bf29cada3fc2fbefad4fdf059ea4bd1b4a86d2b6d15e1c7c0b582b9752fe39",
                 "sha256:de9529817c93f27c8ccbfead6985011db27bd0ddfcdb2d86f3f663385c6a9c22"
             ],
-            "version": "==1.24.1"
+            "version": ">=1.24.2"
         },
         "wcwidth": {
             "hashes": [
